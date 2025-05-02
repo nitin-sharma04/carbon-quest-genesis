@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { mintNFT, connectWallet } from "@/lib/web3";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
+import { ethers } from "ethers";
 
 export default function Admin() {
   const [recipient, setRecipient] = useState("");

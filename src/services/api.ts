@@ -1,4 +1,3 @@
-
 import { toast } from "react-hot-toast";
 
 // API base URL - would come from environment variable in production
@@ -10,6 +9,7 @@ export interface SubmissionData {
   description: string;
   image: File;
   walletAddress: string;
+  userId?: string;
 }
 
 export interface Submission {
@@ -19,6 +19,7 @@ export interface Submission {
   description: string;
   imageUrl: string;
   walletAddress: string;
+  userId?: string;
   status: "pending" | "approved" | "rejected";
   tokenId?: string;
   tokenUri?: string;
@@ -57,6 +58,7 @@ export const api = {
         description: data.description,
         imageUrl: URL.createObjectURL(data.image),
         walletAddress: data.walletAddress,
+        userId: data.userId,
         status: "pending",
         createdAt: new Date().toISOString(),
       };
@@ -73,7 +75,7 @@ export const api = {
     }
   },
   
-  getUserSubmissions: async (walletAddress: string): Promise<Submission[]> => {
+  getUserSubmissions: async (walletAddress: string, userId?: string): Promise<Submission[]> => {
     try {
       // In a real implementation, this would be a fetch call
       // const response = await fetch(`${API_BASE_URL}/submissions?walletAddress=${walletAddress}`);
@@ -85,9 +87,58 @@ export const api = {
       await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
       
       const allSubmissions = api.getStoredSubmissions();
-      return allSubmissions.filter(sub => sub.walletAddress.toLowerCase() === walletAddress.toLowerCase());
+      
+      if (userId) {
+        // Filter by userId first if available
+        return allSubmissions.filter(sub => sub.userId === userId || 
+          (sub.walletAddress && sub.walletAddress.toLowerCase() === walletAddress.toLowerCase()));
+      }
+      
+      // Otherwise filter by wallet address only
+      return allSubmissions.filter(sub => 
+        sub.walletAddress && sub.walletAddress.toLowerCase() === walletAddress.toLowerCase());
     } catch (error) {
       console.error("Error fetching user submissions:", error);
+      throw error;
+    }
+  },
+  
+  getAllSubmissions: async (): Promise<Submission[]> => {
+    try {
+      // Mock API response for demo
+      await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
+      
+      return api.getStoredSubmissions();
+    } catch (error) {
+      console.error("Error fetching all submissions:", error);
+      throw error;
+    }
+  },
+  
+  updateSubmissionStatus: async (submissionId: string, status: "approved" | "rejected", tokenId?: string, tokenUri?: string): Promise<Submission> => {
+    try {
+      // Mock API response for demo
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
+      
+      const submissions = api.getStoredSubmissions();
+      const submissionIndex = submissions.findIndex(sub => sub.id === submissionId);
+      
+      if (submissionIndex === -1) {
+        throw new Error("Submission not found");
+      }
+      
+      submissions[submissionIndex] = {
+        ...submissions[submissionIndex],
+        status,
+        tokenId,
+        tokenUri
+      };
+      
+      localStorage.setItem("carbonquest_submissions", JSON.stringify(submissions));
+      
+      return submissions[submissionIndex];
+    } catch (error) {
+      console.error("Error updating submission status:", error);
       throw error;
     }
   },

@@ -1,21 +1,37 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { connectWallet } from "@/lib/web3";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "react-hot-toast";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [address, setAddress] = useState<string | null>(null);
+  const { user, isAuthenticated, isAdmin, logout, linkWallet } = useAuth();
+  const navigate = useNavigate();
 
   const handleConnectWallet = async () => {
     const connection = await connectWallet();
     if (connection) {
       setAddress(connection.address);
+      
+      // If user is logged in, link wallet to their account
+      if (isAuthenticated) {
+        await linkWallet(connection.address);
+        toast.success("Wallet linked to your account!");
+      }
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    toast.success("Logged out successfully");
+    navigate("/");
   };
 
   const shortAddress = address ? 
@@ -47,22 +63,59 @@ export function Navbar() {
           <Link to="/" className="text-sm font-medium transition-colors hover:text-primary">
             Home
           </Link>
-          <Link to="/dashboard" className="text-sm font-medium transition-colors hover:text-primary">
-            Dashboard
-          </Link>
-          <Link to="/submit" className="text-sm font-medium transition-colors hover:text-primary">
-            Submit Activity
-          </Link>
+          {isAuthenticated && (
+            <>
+              <Link to="/dashboard" className="text-sm font-medium transition-colors hover:text-primary">
+                Dashboard
+              </Link>
+              <Link to="/submit" className="text-sm font-medium transition-colors hover:text-primary">
+                Submit Activity
+              </Link>
+            </>
+          )}
           <Link to="/leaderboard" className="text-sm font-medium transition-colors hover:text-primary">
             Leaderboard
           </Link>
           <Link to="/about" className="text-sm font-medium transition-colors hover:text-primary">
             About
           </Link>
+          {isAdmin && (
+            <Link to="/admin" className="text-sm font-medium transition-colors hover:text-primary">
+              Admin
+            </Link>
+          )}
         </div>
         
         <div className="flex items-center justify-end space-x-4 flex-1">
           <ThemeToggle />
+          
+          {isAuthenticated ? (
+            <div className="hidden md:flex items-center space-x-4">
+              <span className="text-sm font-medium">{user?.email}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="flex items-center space-x-1"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </Button>
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center space-x-2">
+              <Link to="/login">
+                <Button variant="outline" size="sm">
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/register">
+                <Button variant="default" size="sm">
+                  Register
+                </Button>
+              </Link>
+            </div>
+          )}
           
           <Button 
             variant="default" 
@@ -99,20 +152,24 @@ export function Navbar() {
             >
               Home
             </Link>
-            <Link 
-              to="/dashboard" 
-              className="block py-2 text-sm font-medium"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Dashboard
-            </Link>
-            <Link 
-              to="/submit" 
-              className="block py-2 text-sm font-medium"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Submit Activity
-            </Link>
+            {isAuthenticated && (
+              <>
+                <Link 
+                  to="/dashboard" 
+                  className="block py-2 text-sm font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Dashboard
+                </Link>
+                <Link 
+                  to="/submit" 
+                  className="block py-2 text-sm font-medium"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Submit Activity
+                </Link>
+              </>
+            )}
             <Link 
               to="/leaderboard" 
               className="block py-2 text-sm font-medium"
@@ -127,6 +184,52 @@ export function Navbar() {
             >
               About
             </Link>
+            {isAdmin && (
+              <Link 
+                to="/admin" 
+                className="block py-2 text-sm font-medium"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Admin
+              </Link>
+            )}
+            
+            {isAuthenticated ? (
+              <div className="pt-2 border-t">
+                <div className="py-2 text-sm font-medium">{user?.email}</div>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => {
+                    handleLogout();
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <div className="pt-2 border-t flex flex-col space-y-2">
+                <Link 
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Button variant="outline" className="w-full">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link 
+                  to="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Button variant="default" className="w-full">
+                    Register
+                  </Button>
+                </Link>
+              </div>
+            )}
+            
             <Button 
               variant="default" 
               className="w-full bg-gradient-to-r from-carbon-600 to-carbon-500 hover:from-carbon-500 hover:to-carbon-400 text-white mt-2"

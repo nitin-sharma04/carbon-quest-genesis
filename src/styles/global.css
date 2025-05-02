@@ -1,0 +1,41 @@
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loader {
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  border-top: 3px solid #8B5CF6;
+  width: 24px;
+  height: 24px;
+  animation: spin 1s linear infinite;
+}
+
+.btn-glow {
+  box-shadow: 0 0 15px 0 rgba(139, 92, 246, 0.5);
+  transition: all 0.3s ease;
+}
+
+.btn-glow:hover {
+  box-shadow: 0 0 20px 5px rgba(139, 92, 246, 0.6);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.dark .glass-card {
+  background: rgba(30, 30, 30, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gradient-heading {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-carbon-600 to-carbon-400;
+}
